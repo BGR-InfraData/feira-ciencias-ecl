@@ -1,0 +1,5 @@
+services:
+  - name: streamlit
+    env: python
+    buildCommand: poetry install --no-dev
+    startCommand: poetry run streamlit run app.py
