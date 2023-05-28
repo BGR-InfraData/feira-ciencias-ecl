@@ -1,4 +1,5 @@
 import streamlit as st
+import transformers
 from langchain.chains import LLMChain
 from langchain.llms import OpenAI
 from langchain.memory import ConversationBufferMemory
@@ -13,13 +14,14 @@ def main():
     st.set_page_config(page_title='🔗 INTNEG-GPT', page_icon='🦜')
 
     add_selectbox = st.sidebar.selectbox(
-        'Qual modelo quer testar?', ('Youtube GPT Creator', 'PDF GPT Creator', 'CSV GPT Creator'))
+        'Qual modelo quer testar?',
+        ('Youtube GPT Creator', 'Sentiment GPT Analysis', 'PDF GPT Creator', 'CSV GPT Creator'))
 
     if add_selectbox == 'Youtube GPT Creator':
 
         wiki = WikipediaAPIWrapper()
 
-        st.title('Youtube GPT Creator')
+        st.title('📹 Youtube GPT Creator')
         prompt = st.text_input(
             'Sobre qual tema quer que eu escreva um script para um vídeo?')
 
@@ -60,6 +62,37 @@ def main():
 
             with st.expander('Wikipedia Research'):
                 st.info(wiki_research)
+
+    if add_selectbox == 'Sentiment GPT Analysis':
+
+        # Paper: https://arxiv.org/pdf/2104.12250.pdf
+        model_path = "cardiffnlp/twitter-xlm-roberta-base-sentiment"
+
+        map_sentiment = {
+            'positive': 'Positivo',
+            'negative': 'Negativo',
+            'neutral': 'Neutro'
+        }
+        st.title('❤️ Sentiment Analysis')
+        sa_llm = transformers.pipeline(
+            "sentiment-analysis", model=model_path, tokenizer=model_path)
+
+        text_analysis = st.text_input('Escreva seu texto aqui', )
+
+        if text_analysis:
+
+            response = sa_llm(text_analysis)[0]
+
+            label = response['label']
+            score = response['score']
+
+            sentiment = map_sentiment.get(label, 'Desconhecido')
+
+            col1, col2 = st.columns(2)
+            with col1:
+                st.write(f'Sentimento: {sentiment}')
+            with col2:
+                st.write(f'Score: {round(score*100, 1)}%')
 
 
 if __name__ == '__main__':
