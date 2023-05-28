@@ -1,8 +1,11 @@
 import logging
+import os
 
 import pandas as pd
+import requests
 import streamlit as st
-import transformers
+
+# import transformers
 from langchain.agents import create_pandas_dataframe_agent
 from langchain.chains import LLMChain
 from langchain.chains.question_answering import load_qa_chain
@@ -17,11 +20,29 @@ from PIL import Image
 from PyPDF2 import PdfReader
 from st_aggrid import AgGrid, GridOptionsBuilder
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
 image = Image.open('src/logo.jpg')
 
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+def query(payload: dict) -> dict:
+    """
+    Sends a POST request to a sentiment analysis API endpoint and returns the response in JSON format.
+
+    Args:
+        payload (dict): The payload data to be sent in the request body.
+
+    Returns:
+        dict: The response from the API in JSON format.
+    """
+    api_url = "https://api-inference.huggingface.co/models/cardiffnlp/" \
+              "twitter-xlm-roberta-base-sentiment"
+    headers = {"Authorization": os.environ.get('HUGGING_KEY')}
+
+    response = requests.post(api_url, headers=headers,
+                             json=payload, timeout=10)
+    return response.json()
 
 
 def main():
@@ -86,7 +107,7 @@ def main():
     if add_selectbox == 'Análise de Sentimento':
 
         # Paper: https://arxiv.org/pdf/2104.12250.pdf
-        model_path = "cardiffnlp/twitter-xlm-roberta-base-sentiment"
+        # model_path = "cardiffnlp/twitter-xlm-roberta-base-sentiment"
 
         map_sentiment = {
             'positive': 'Positivo',
@@ -94,14 +115,16 @@ def main():
             'neutral': 'Neutro'
         }
         st.title('❤️💔 Análise de Sentimento')
-        sa_llm = transformers.pipeline(
-            "sentiment-analysis", model=model_path, tokenizer=model_path)
+        # sa_llm = transformers.pipeline(
+        #     "sentiment-analysis", model=model_path, tokenizer=model_path)
 
         text_analysis = st.text_input('Escreva seu texto aqui')
 
         if text_analysis:
 
-            response = sa_llm(text_analysis)[0]
+            # response = sa_llm(text_analysis)[0]
+            results = query(payload={'inputs': text_analysis})[0]
+            response = max(results, key=lambda x: x['score'])
 
             label = response['label']
             score = response['score']
@@ -149,7 +172,9 @@ def main():
 
         st.title("📈 Pergunte ao seu CSV")
         csv_file = st.file_uploader(
-            "Carregue seu arquivo CSV com separador `;`", type="csv", help="Arquivos com separador `;`")
+            "Carregue seu arquivo CSV com separador `;`",
+            type="csv",
+            help="Arquivos com separador `;`")
 
         if csv_file:
 
