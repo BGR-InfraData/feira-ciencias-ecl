@@ -30,9 +30,10 @@ def main():
     """
     st.set_page_config(page_title='🔗 gstw7', page_icon='🦜')
 
+    st.sidebar.header('LLMs UI Apps')
     st.sidebar.image(image)
     add_selectbox = st.sidebar.radio(
-        'Qual modelo quer testar?',
+        'Escolha seu app:',
         ('Criador de script para Youtube', 'Análise de Sentimento',
          'Pergunte ao seu PDF', 'Pergunte ao seu CSV'))
 
