@@ -17,6 +17,9 @@ openai = "^0.27.7"
 sympy = "^1.12"
 xformers = "^0.0.20"
 sentencepiece = "^0.1.99"
+pypdf2 = "^3.0.1"
+faiss-cpu = "^1.7.4"
+tiktoken = "^0.4.0"
 
 
 [tool.poetry.group.dev.dependencies]
