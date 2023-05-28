@@ -1,0 +1,16 @@
+[DESIGN]
+max-locals=50
+max-args=10
+max-statements=80
+max-nested-blocks=10
+
+[FORMAT]
+max-line-length=150
+
+[MESSAGES CONTROL]
+disable=duplicate-code
+
+[GENERAL]
+disable=C,
+        W,
+        E0401
