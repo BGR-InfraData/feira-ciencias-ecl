@@ -6,4 +6,4 @@ RUN pip install poetry && \
     poetry config virtualenvs.create false && \
     poetry install --no-interaction --no-ansi
 EXPOSE 5000
-CMD streamlit run --server.port 5000 app.p
+CMD streamlit run --server.port 5000 app.py
