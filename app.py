@@ -137,6 +137,12 @@ def main():
             with col2:
                 st.write(f'Score: {round(score*100, 1)}%')
 
+            with st.expander('History Ask'):
+                st.info(text_analysis)
+
+            with st.expander('Result History'):
+                st.info(label)
+
     if add_selectbox == 'Pergunte ao seu PDF':
 
         st.title('🎨 Pergunte ao seu PDF')
@@ -167,6 +173,12 @@ def main():
                 response = chain.run(input_documents=docs,
                                      question=user_question)
                 st.write(response)
+
+                with st.expander('History Ask'):
+                    st.info(user_question)
+
+                with st.expander('Result History'):
+                    st.info(response)
 
     if add_selectbox == 'Pergunte ao seu CSV':
 
@@ -203,7 +215,14 @@ def main():
 
                     if user_question != "":
                         with st.spinner(text="Aguarde..."):
-                            st.write(agent.run(user_question))
+                            response = agent.run(user_question)
+                            st.write(response)
+
+                            with st.expander('History Ask'):
+                                st.info(user_question)
+
+                            with st.expander('Result History'):
+                                st.info(response)
                 else:
                     st.error(
                         "Ocorreu um erro ao ler o arquivo. Verifique se o arquivo é válido.")
