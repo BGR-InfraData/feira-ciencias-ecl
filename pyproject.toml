@@ -10,10 +10,19 @@ python = "^3.10"
 pandas = "^2.0.1"
 streamlit = "^1.22.0"
 langchain = "^0.0.181"
+transformers = "^4.29.2"
+torch = {version = "^2.0.1+cpu", source = "pyt"}
+wikipedia = "^1.4.0"
 
 
 [tool.poetry.group.dev.dependencies]
 autopep8 = "^2.0.2"
+
+
+[[tool.poetry.source]]
+name = "pyt"
+url = "https://download.pytorch.org/whl/cpu"
+priority = "explicit"
 
 [build-system]
 requires = ["poetry-core"]
