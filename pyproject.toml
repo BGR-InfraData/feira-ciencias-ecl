@@ -14,6 +14,7 @@ transformers = "^4.29.2"
 torch = {version = "^2.0.1+cpu", source = "pyt"}
 wikipedia = "^1.4.0"
 openai = "^0.27.7"
+sympy = "^1.12"
 
 
 [tool.poetry.group.dev.dependencies]
