@@ -1,7 +1,9 @@
 import logging
 
+import pandas as pd
 import streamlit as st
 import transformers
+from langchain.agents import create_pandas_dataframe_agent
 from langchain.chains import LLMChain
 from langchain.chains.question_answering import load_qa_chain
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -13,6 +15,7 @@ from langchain.utilities import WikipediaAPIWrapper
 from langchain.vectorstores import FAISS
 from PIL import Image
 from PyPDF2 import PdfReader
+from st_aggrid import AgGrid, GridOptionsBuilder
 
 image = Image.open('src/logo.jpg')
 
@@ -25,7 +28,7 @@ def main():
     """
     Streamlit app for LLM testing
     """
-    st.set_page_config(page_title='🔗 INTNEG-GPT', page_icon='🦜')
+    st.set_page_config(page_title='🔗 gstw7', page_icon='🦜')
 
     st.sidebar.image(image)
     add_selectbox = st.sidebar.radio(
@@ -140,6 +143,44 @@ def main():
                 response = chain.run(input_documents=docs,
                                      question=user_question)
                 st.write(response)
+
+    if add_selectbox == 'Pergunte ao seu CSV':
+
+        st.title("📈 Pergunte ao seu CSV")
+        csv_file = st.file_uploader(
+            "Carregue seu arquivo CSV com separador `;`", type="csv", help="Arquivos com separador `;`")
+
+        if csv_file:
+
+            try:
+                df_file = pd.read_csv(csv_file, sep=';')
+            except ValueError as error_value:
+                st.error(str(error_value))
+            except Exception:
+                st.error(
+                    "Ocorreu um erro ao ler o arquivo. Verifique se o arquivo é válido.")
+            else:
+                grid_build = GridOptionsBuilder.from_dataframe(df_file)
+                grid_build.configure_pagination(enabled=True)
+                grid_options = grid_build.build()
+                AgGrid(df_file, gridOptions=grid_options,
+                       height=250, theme='streamlit')
+
+                llm = OpenAI(temperature=0.9)
+                agent = create_pandas_dataframe_agent(
+                    llm=llm, df=df_file, verbose=True)
+
+                if len(df_file) > 0:
+
+                    user_question = st.text_input(
+                        "Faça uma pergunta sobre o seu CSV")
+
+                    if user_question != "":
+                        with st.spinner(text="Aguarde..."):
+                            st.write(agent.run(user_question))
+                else:
+                    st.error(
+                        "Ocorreu um erro ao ler o arquivo. Verifique se o arquivo é válido.")
 
 
 if __name__ == '__main__':
