@@ -32,7 +32,7 @@ def main():
         script_template = PromptTemplate(
             input_variables=['title', 'wikipedia_research'],
             template='Escreva um script de vídeo do Youtube baseado neste título: {title}. \
-                Aproveite esta pesquisa da Wikipedia: {wikipedia_research} para escrever o script')
+                Aproveite esta pesquisa da Wikipedia para escrever o script: {wikipedia_research}')
 
         title_memory = ConversationBufferMemory(
             input_key='topic', memory_key='chat_history')
