@@ -1,3 +1,4 @@
 [theme]
 base="dark"
-font="serif"
+primaryColor="#3596de"
+font="sans serif"

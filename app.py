@@ -11,7 +11,11 @@ from langchain.prompts import PromptTemplate
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.utilities import WikipediaAPIWrapper
 from langchain.vectorstores import FAISS
+from PIL import Image
 from PyPDF2 import PdfReader
+
+image = Image.open('src/logo.jpg')
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -23,6 +27,7 @@ def main():
     """
     st.set_page_config(page_title='🔗 INTNEG-GPT', page_icon='🦜')
 
+    st.sidebar.image(image)
     add_selectbox = st.sidebar.radio(
         'Qual modelo quer testar?',
         ('Criador de script para Youtube', 'Análise de Sentimento',
@@ -84,11 +89,11 @@ def main():
             'negative': 'Negativo',
             'neutral': 'Neutro'
         }
-        st.title('❤️ Análise de Sentimento')
+        st.title('❤️💔 Análise de Sentimento')
         sa_llm = transformers.pipeline(
             "sentiment-analysis", model=model_path, tokenizer=model_path)
 
-        text_analysis = st.text_input('Escreva seu texto aqui', )
+        text_analysis = st.text_input('Escreva seu texto aqui')
 
         if text_analysis:
 
