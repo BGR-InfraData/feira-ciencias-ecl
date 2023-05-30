@@ -57,6 +57,18 @@ def main():
         'Escolha seu app:',
         ('Criador de script para Youtube', 'Análise de Sentimento',
          'Pergunte ao seu PDF', 'Pergunte ao seu CSV'))
+    st.sidebar.write('Projeto')
+    st.sidebar.markdown(
+        '<a href="https://github.com/gstw7/llms-ui"><img src="https://github.githubassets.com/pinned-octocat.svg" alt="Github" width="64" height="64"></a>',
+        unsafe_allow_html=True
+    )
+    st.sidebar.write('Contato')
+    st.sidebar.markdown(
+        '<a href="https://www.linkedin.com/in/gustavo-de-melo-oliveira/"><img src="https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg" alt="LinkedIn" width="64" height="64"></a>',
+        unsafe_allow_html=True
+    )
+    st.sidebar.write(
+        'Created by Gustavo Oliveira')
 
     if add_selectbox == 'Criador de script para Youtube':
 
