@@ -1,4 +1,5 @@
 [theme]
 base="dark"
 primaryColor="#3596de"
+secondaryBackgroundColor="#363943"
 font="sans serif"
