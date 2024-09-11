@@ -1,78 +1,76 @@
 import logging
-import os
 
-import pandas as pd
-import requests
 import streamlit as st
-
-# import transformers
-from langchain.agents import create_pandas_dataframe_agent
 from langchain.chains import LLMChain
 from langchain.chains.question_answering import load_qa_chain
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.llms import OpenAI
-from langchain.memory import ConversationBufferMemory
 from langchain.prompts import PromptTemplate
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.utilities import WikipediaAPIWrapper
-from langchain.vectorstores import FAISS
+from langchain_community.chat_message_histories import StreamlitChatMessageHistory
+from langchain_community.embeddings import OpenAIEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain_core.prompts import (
+    ChatPromptTemplate,
+    MessagesPlaceholder,
+    PromptTemplate,
+)
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_openai import ChatOpenAI, OpenAI
 from PIL import Image
 from PyPDF2 import PdfReader
-from st_aggrid import AgGrid, GridOptionsBuilder
+
+from utils.constants import PROMPT_QUESTION_AI
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-image = Image.open('src/logo.jpg')
+image = Image.open('src/equipe.jpg')
+
+st.set_page_config(page_title='ECL - Feira de Ciência', page_icon='🤖')
+msgs = StreamlitChatMessageHistory(key="langchain_messages")
 
 
-def query(payload: dict) -> dict:
-    """
-    Sends a POST request to a sentiment analysis API endpoint and returns the response in JSON format.
-
-    Args:
-        payload (dict): The payload data to be sent in the request body.
-
-    Returns:
-        dict: The response from the API in JSON format.
-    """
-    api_url = "https://api-inference.huggingface.co/models/cardiffnlp/" \
-              "twitter-xlm-roberta-base-sentiment"
-    headers = {"Authorization": os.environ.get('HUGGING_KEY')}
-
-    response = requests.post(api_url, headers=headers,
-                             json=payload, timeout=10)
-    return response.json()
+def clear_cache():
+    keys = list(st.session_state.keys())
+    for key in keys:
+        st.session_state.pop(key)
 
 
 def main():
     """
     Streamlit app for LLM testing
     """
-    st.set_page_config(page_title='🔗 gstw7', page_icon='🦜')
 
-    st.sidebar.header('LLMs UI Apps')
-    st.sidebar.image(image)
+    st.sidebar.header("INTELIGÊNCIA ARTIFICIAL")
+    st.sidebar.subheader(
+        "Considerações sobre o uso no cotidiano", divider=True)
+    st.sidebar.text("""
+                     Feira de Ciências 
+                     Esola Conceição Lyra
+                     
+                     Professora Rejane Soares
+                     
+                     Alunas:
+                     Ana Clara Anacleto, 
+                     Anny Gabrielly, 
+                     Gabriela Araujo, 
+                     Isabelly Mendes, 
+                     Maria Alice Oliveira, 
+                     Maria Luiza Clemente, 
+                     Sofia Peixoto
+                     
+                     6º ano""")
+    st.sidebar.subheader("", divider=True)
+
     add_selectbox = st.sidebar.radio(
-        'Escolha seu app:',
-        ('Criador de script para Youtube', 'Análise de Sentimento',
-         'Pergunte ao seu PDF', 'Pergunte ao seu CSV'))
-    st.sidebar.write('Projeto')
-    st.sidebar.markdown(
-        '<a href="https://github.com/gstw7/llms-ui"><img src="https://github.githubassets.com/pinned-octocat.svg" alt="Github" width="64" height="64"></a>',
-        unsafe_allow_html=True
-    )
-    st.sidebar.write('Contato')
-    st.sidebar.markdown(
-        '<a href="https://www.linkedin.com/in/gustavo-de-melo-oliveira/"><img src="https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg" alt="LinkedIn" width="64" height="64"></a>',
-        unsafe_allow_html=True
-    )
-    st.sidebar.write(
-        'Created by Gustavo Oliveira')
+        'Apps com Inteligência Artificial (IA):',
+        ('Criador de script para Youtube',
+         'Pergunte ao seu PDF', 'Questionário'))
+
+    st.sidebar.write("\n")
+    st.sidebar.write("\n")
+    st.sidebar.image(image)
 
     if add_selectbox == 'Criador de script para Youtube':
-
-        wiki = WikipediaAPIWrapper()
 
         st.title('📹 Criador de script para Youtube')
         prompt = st.text_input(
@@ -80,80 +78,18 @@ def main():
 
         title_template = PromptTemplate(
             input_variables=['topic'],
-            template='Escreva um título para um novo vídeo no Youtube sobre {topic}')
+            template='Você é um criador de conteúdo para vídeos no Youtube e deverá escrever um título e os tópicos que deverão ser abordados para um novo vídeo no Youtube sobre o seguinte tópico: {topic}')
 
-        script_template = PromptTemplate(
-            input_variables=['title', 'wikipedia_research'],
-            template='Escreva um script de vídeo do Youtube baseado neste título: {title}. \
-                Aproveite esta pesquisa da Wikipedia para escrever o script: {wikipedia_research}')
-
-        title_memory = ConversationBufferMemory(
-            input_key='topic', memory_key='chat_history')
-        script_memory = ConversationBufferMemory(
-            input_key='title', memory_key='chat_history')
-
-        llm = OpenAI(temperature=0.9)
-        title_chain = LLMChain(llm=llm, prompt=title_template,
-                               verbose=True, output_key='title', memory=title_memory)
-        script_chain = LLMChain(llm=llm, prompt=script_template,
-                                verbose=True, output_key='script', memory=script_memory)
+        llm = OpenAI(temperature=0)
+        title_chain = LLMChain(llm=llm, prompt=title_template, verbose=True)
 
         if prompt:
             title = title_chain.run(prompt)
-            wiki_research = wiki.run(prompt)
-            script = script_chain.run(
-                title=title, wikipedia_research=wiki_research)
+            script = title_chain.run(
+                topic=title)
 
             st.write(title)
             st.write(script)
-
-            with st.expander('Title History'):
-                st.info(title_memory.buffer)
-
-            with st.expander('Script History'):
-                st.info(script_memory.buffer)
-
-            with st.expander('Wikipedia Research'):
-                st.info(wiki_research)
-
-    if add_selectbox == 'Análise de Sentimento':
-
-        # Paper: https://arxiv.org/pdf/2104.12250.pdf
-        # model_path = "cardiffnlp/twitter-xlm-roberta-base-sentiment"
-
-        map_sentiment = {
-            'positive': 'Positivo',
-            'negative': 'Negativo',
-            'neutral': 'Neutro'
-        }
-        st.title('❤️💔 Análise de Sentimento')
-        # sa_llm = transformers.pipeline(
-        #     "sentiment-analysis", model=model_path, tokenizer=model_path)
-
-        text_analysis = st.text_input('Escreva seu texto aqui')
-
-        if text_analysis:
-
-            # response = sa_llm(text_analysis)[0]
-            results = query(payload={'inputs': text_analysis})[0]
-            response = max(results, key=lambda x: x['score'])
-
-            label = response['label']
-            score = response['score']
-
-            sentiment = map_sentiment.get(label, 'Desconhecido')
-
-            col1, col2 = st.columns(2)
-            with col1:
-                st.write(f'Sentimento: {sentiment}')
-            with col2:
-                st.write(f'Score: {round(score*100, 1)}%')
-
-            with st.expander('History Ask'):
-                st.info(text_analysis)
-
-            with st.expander('Result History'):
-                st.info(label)
 
     if add_selectbox == 'Pergunte ao seu PDF':
 
@@ -192,52 +128,42 @@ def main():
                 with st.expander('Result History'):
                     st.info(response)
 
-    if add_selectbox == 'Pergunte ao seu CSV':
+    if add_selectbox == 'Questionário':
 
-        st.title("📈 Pergunte ao seu CSV")
-        csv_file = st.file_uploader(
-            "Carregue seu arquivo CSV com separador `;`",
-            type="csv",
-            help="Arquivos com separador `;`")
+        st.title("🤖 Questionário sobre Inteligência Artificial")
 
-        if csv_file:
+        msgs = StreamlitChatMessageHistory(key="langchain_messages")
+        if len(msgs.messages) == 0:
+            msgs.add_ai_message(
+                "Oi, antes de começar me diz qual o seu o nome?")
 
-            try:
-                df_file = pd.read_csv(csv_file, sep=';')
-            except ValueError as error_value:
-                st.error(str(error_value))
-            except Exception:
-                st.error(
-                    "Ocorreu um erro ao ler o arquivo. Verifique se o arquivo é válido.")
-            else:
-                grid_build = GridOptionsBuilder.from_dataframe(df_file)
-                grid_build.configure_pagination(enabled=True)
-                grid_options = grid_build.build()
-                AgGrid(df_file, gridOptions=grid_options,
-                       height=250, theme='streamlit')
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", PROMPT_QUESTION_AI),
+                MessagesPlaceholder(variable_name="history"),
+                ("human", "{question}"),
+            ]
+        )
 
-                llm = OpenAI(temperature=0.9)
-                agent = create_pandas_dataframe_agent(
-                    llm=llm, df=df_file, verbose=True)
+        chain = prompt | ChatOpenAI(model='gpt-4o')
+        chain_with_history = RunnableWithMessageHistory(
+            chain,
+            lambda session_id: msgs,
+            input_messages_key="question",
+            history_messages_key="history",
+        )
 
-                if len(df_file) > 0:
+        for msg in msgs.messages:
+            st.chat_message(msg.type).write(msg.content)
 
-                    user_question = st.text_input(
-                        "Faça uma pergunta sobre o seu CSV")
+        if prompt := st.chat_input():
+            st.chat_message("human").write(prompt)
+            config = {"configurable": {"session_id": "any"}}
+            response = chain_with_history.invoke({"question": prompt}, config)
+            st.chat_message("ai").write(response.content)
 
-                    if user_question != "":
-                        with st.spinner(text="Aguarde..."):
-                            response = agent.run(user_question)
-                            st.write(response)
-
-                            with st.expander('History Ask'):
-                                st.info(user_question)
-
-                            with st.expander('Result History'):
-                                st.info(response)
-                else:
-                    st.error(
-                        "Ocorreu um erro ao ler o arquivo. Verifique se o arquivo é válido.")
+        with st.sidebar.expander('Histórico'):
+            st.sidebar.button('Limpar histórico', on_click=clear_cache)
 
 
 if __name__ == '__main__':
