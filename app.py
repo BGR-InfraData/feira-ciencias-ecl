@@ -25,7 +25,7 @@ logger.setLevel(logging.INFO)
 
 image = Image.open('src/equipe.jpg')
 
-st.set_page_config(page_title='ECL - Feira de Ciência', page_icon='🤖')
+st.set_page_config(page_title='ECL - Feira de Ciências', page_icon='🤖')
 msgs = StreamlitChatMessageHistory(key="langchain_messages")
 
 
