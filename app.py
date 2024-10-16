@@ -63,8 +63,7 @@ def main():
 
     add_selectbox = st.sidebar.radio(
         'Apps com Inteligência Artificial (IA):',
-        ('Criador de script para Youtube',
-         'Pergunte ao seu PDF', 'Questionário'))
+        ('Questionário', 'Pergunte ao seu PDF', 'Criador de script para Youtube'))
 
     st.sidebar.write("\n")
     st.sidebar.write("\n")
